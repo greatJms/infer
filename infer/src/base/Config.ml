@@ -485,7 +485,7 @@ let () =
     match cmd with
     | Report ->
         `Add
-    | Analyze | Capture | Compile | Debug | Explore | Help | ReportDiff | Run ->
+    | Analyze | Capture | Compile | Debug | Explore | Help | ReportDiff | Run | Pta ->
         `Reject
   in
   (* make sure we generate doc for all the commands we know about *)
@@ -1020,7 +1020,7 @@ and ( bo_debug
   let all_generic_manuals =
     List.filter_map InferCommand.all_commands ~f:(fun (command : InferCommand.t) ->
         match command with
-        | Debug | Explore | Help ->
+        | Debug | Explore | Help  | Pta ->
             None
         | (Analyze | Capture | Compile | Report | ReportDiff | Run) as command ->
             Some (command, manual_generic) )
@@ -2466,7 +2466,13 @@ and xcpretty =
     "Infer will use xcpretty together with xcodebuild to analyze an iOS app. xcpretty just needs \
      to be in the path, infer command is still just $(i,`infer -- <xcodebuild command>`)."
 
-
+     
+(* 
+and pre_analysis_only =
+  CLOpt.mk_bool ~long:"pre-analysis-only"
+   ~in_help:InferCommand.[(Pta, manual_generic)]
+   "Perform SAVER's pre-analysis only."
+*)
 (* The "rest" args must appear after "--" on the command line, and hence after other args, so they
    are allowed to refer to the other arg variables. *)
 

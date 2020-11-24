@@ -5,12 +5,60 @@
  * LICENSE file in the root directory of this source tree.
  *)
 
+
 open! IStd
 module F = Format
 module CLOpt = CommandLineOption
 module L = Logging
 
 (** Top-level driver that orchestrates build system integration, frontends, backend, and reporting *)
+
+
+let tmp_pta () =
+  let _ = print_endline ("Do pointer analysis") in
+  (* Calculate Global *)
+  (* Translate a program into a set of instructions *)
+  L.progress "- Fetching source files ...@." ;
+  L.progress "- SourceFiles begins ...@." ;
+  (*let source_files_all = SourceFiles.get_all ~filter:(fun _ -> true) () in*)
+  let file_list = SourceFiles.get_all ~filter:(fun _ -> true) () in
+  List.iter file_list ~f: (fun e -> L.progress "SourceFile:%a@." IBase.SourceFile.pp e);
+  L.progress "- SourceFiles ends ...@.";
+  (*let proc_list = source_list_to_proc_list file_list in*) (*ProcName.t list*)
+  let proc_list = List.concat_map file_list ~f: (fun e -> SourceFiles.proc_names_of_source e) in
+  L.progress "- Procs begins ...@." ;
+  List.iter proc_list ~f: (fun e -> L.progress "Proc : %a@." Procname.pp e);
+  L.progress "- Procs ends ...@." ;
+  let proc_desc_list = List.map proc_list ~f: (fun e -> Procdesc.load e) in
+  let nodes = List.concat_map proc_desc_list
+    ~f: (fun e ->
+      match e with
+      | Some e -> Procdesc.get_nodes e
+      | None -> []
+    ) in 
+  let instrs = List.concat_map nodes
+    ~f: (fun e -> Array.to_list (Instrs.get_underlying_not_reversed (Procdesc.Node.get_instrs e))) in
+  L.progress "- instrs begins ...@." ;
+  List.iter instrs ~f: (fun e -> L.progress "Instr : %a@." (Sil.pp_instr ~print_types:true Pp.text) e );
+  L.progress "- instrs ends ...@." ;
+  
+(*
+let instrs = List.concat_map nodes
+    (fun e -> Array.to_list (Instrs.get_underlying_not_reversed (Procdesc.Node.get_instrs e))) in
+  (*let instrs = nodes_to_instrs nodes in*)
+  L.progress "- instrs begins ...@." ;
+  List.iter instrs ~f: (fun e -> L.progress "Instr : %a@." (Sil.pp_instr ~print_types:true Pp.text) e );
+  L.progress "- instrs ends ...@." ;
+*)
+
+  (*L.result "%a"
+  (SourceFiles.pp_all ~filter:(fun _ -> true) ~type_environment:Config.source_files_type_environment
+    ~procedure_names:Config.source_files_procedure_names
+    ~freshly_captured:Config.source_files_freshly_captured)
+    () ;
+  *)
+  L.exit 0
+
 
 let run driver_mode =
   let open Driver in
@@ -61,6 +109,8 @@ let setup () =
         SourceFiles.mark_all_stale () )
   | Explore ->
       ResultsDir.assert_results_dir "please run an infer analysis first"
+  | Pta -> 
+      ResultsDir.assert_results_dir "hello world! you shouldn't be seddeing this" 
   | Debug ->
       ResultsDir.assert_results_dir "please run an infer analysis or capture first"
   | Help ->
@@ -69,7 +119,7 @@ let setup () =
     match Config.command with
     | Analyze | Capture | Compile | Debug | Explore | Report | ReportDiff | Run ->
         true
-    | Help ->
+    | Help | Pta ->
         false
   in
   if has_result_dir then (
@@ -276,6 +326,7 @@ let () =
               DotCfg.emit_frontend_cfg source_file cfgs ) ;
           L.result "CFGs written in %s/*/%s@." (ResultsDir.get_path Debug)
             Config.dotty_frontend_output ) )
+  | Pta -> tmp_pta ()  (* Pta.main()*)
   | Explore ->
       if (* explore bug traces *)
          Config.html then
@@ -285,6 +336,6 @@ let () =
       else
         TraceBugs.explore ~selector_limit:None ~report_json:(ResultsDir.get_path ReportJson)
           ~report_txt:(ResultsDir.get_path ReportText) ~selected:Config.select
-          ~show_source_context:Config.source_preview ~max_nested_level:Config.max_nesting ) ;
+          ~show_source_context:Config.source_preview ~max_nested_level:Config.max_nesting  ) ;
   (* to make sure the exitcode=0 case is logged, explicitly invoke exit *)
   L.exit 0

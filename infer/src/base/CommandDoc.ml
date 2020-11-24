@@ -324,6 +324,13 @@ $(b,infer) $(b,analyze) $(i,[options])|} ]
     ~see_also:InferCommand.[Analyze; Capture; Report]
 
 
+let pta =
+  mk_command_doc ~title:"PTA"
+    ~short_description:"Precise and Scalble Pointer Analysis for Infer"
+    ~synopsis:"%(b,infer) %(b,pta) $(b,--) $(i,[PTA coomand])" ~description:[`P ""]
+    ~see_also:InferCommand.[Pta]
+
+
 let command_to_data =
   let mk cmd mk_doc =
     let name = InferCommand.to_string cmd in
@@ -339,7 +346,8 @@ let command_to_data =
   ; mk Help help
   ; mk Report report
   ; mk ReportDiff reportdiff
-  ; mk Run run ]
+  ; mk Run run 
+  ; mk Pta pta]
 
 
 let data_of_command command =
