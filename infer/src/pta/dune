@@ -1,0 +1,14 @@
+; Copyright (c) Facebook, Inc. and its affiliates.
+;
+; This source code is licensed under the MIT license found in the
+; LICENSE file in the root directory of this source tree.
+
+(library
+ (name Pta)
+ (public_name infer.Pta)
+ (flags
+  (:standard -open Core -open IR -open Absint -open IStdlib -open IStd -open ATDGenerated
+    -open IBase -open Backend -open ClangFrontend))
+ (libraries core IStdlib Absint ATDGenerated IBase IR ocamlgraph Backend ClangFrontend)
+ (preprocess
+  (pps ppx_compare)))

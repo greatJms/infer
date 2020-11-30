@@ -240,7 +240,7 @@ let analyze_and_report ?suppress_console_report ~changed_files mode =
         (false, false)
     | (Analyze | Run), _ ->
         (true, true)
-    | Pta, _ ->
+    | (Pta), _ ->
         (true, true)
   in
   let should_analyze = should_analyze && Config.capture in

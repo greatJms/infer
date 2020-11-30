@@ -15,6 +15,7 @@ module L = Logging
 
 
 let tmp_pta () =
+  (*Pta.main ();*)
   let _ = print_endline ("Do pointer analysis") in
   (* Calculate Global *)
   (* Translate a program into a set of instructions *)
